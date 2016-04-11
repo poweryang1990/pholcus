@@ -98,7 +98,7 @@ var FangYuan58 = &Spider{
                     var 单价 int
                     标题 = query.Find(".house-title h1").Text()
                     
-                    租金 = query.Find("em.house-price").Text()  
+                    租金 =strings.TrimSpace(query.Find("em.house-price").Text())   
                     
                     区域=query.Find("div.xiaoqu a").Eq(0).Text();
                     
@@ -128,8 +128,11 @@ var FangYuan58 = &Spider{
                     houseZhuangXiuReg:=regexp.MustCompile("[\u4E00-\u9FA5]{1,2}装修")
                     houseFloorReg:=regexp.MustCompile("(\\d+)/(\\d+)层")
                     houseRoomReg:=regexp.MustCompile("[\u4E00-\u9FA5]{1,}卧")
-                    房屋类型=houseTypeReg.FindString(houseInfoText)
+                    
+                    房屋类型=strings.Replace(houseTypeReg.FindString(houseInfoText)," ","",-1)
+                    房屋类型=strings.Replace(房屋类型,"\n","",-1)
                     房间大小=strings.Replace(houseSizeReg.FindString(houseInfoText),"m²","",-1)
+                    房间大小=strings.TrimSpace(房间大小)
                     户型=houseHuXinReg.FindString(houseInfoText)
                     装修=houseZhuangXiuReg.FindString(houseInfoText)
                     楼层=houseFloorReg.FindString(houseInfoText)
