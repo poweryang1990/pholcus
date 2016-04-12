@@ -109,7 +109,7 @@ var FangYuan58 = &Spider{
 				ParseFunc: func(ctx *Context) {
                     
 					ctx.GetDom().
-						Find("table.tbimg .img_list a").
+						Find("#infolist > table .img_list a").
 						Each(func(i int, s *goquery.Selection) {
 							url, _ := s.Attr("href")
                             //logs.Log.Informational("请求房源地址：%s",url)
