@@ -92,12 +92,14 @@ var FangYuan58 = &Spider{
                                 Url:fmt.Sprintf("http://%s.58.com/%s/zufang/pn%d/",value.CityCode,area,page),
                                 Rule: "获取列表",
                                 ConnTimeout: -1,
+                                Reloadable: true,//列表请求 可重复加载
                             })
                             //合租
                              ctx.AddQueue(&request.Request{
                                 Url:fmt.Sprintf("http://%s.58.com/%s/hezu/pn%d/",value.CityCode,area,page),
                                 Rule: "获取列表",
                                 ConnTimeout: -1,
+                                Reloadable: true,//列表请求 可重复加载
                             })
                         }   
                     }
@@ -107,17 +109,23 @@ var FangYuan58 = &Spider{
 
 			"获取列表": {
 				ParseFunc: func(ctx *Context) {
-                    
+       
 					ctx.GetDom().
 						Find("#infolist > table .img_list a").
 						Each(func(i int, s *goquery.Selection) {
 							url, _ := s.Attr("href")
-                            //logs.Log.Informational("请求房源地址：%s",url)
-							ctx.AddQueue(&request.Request{
-								Url:         url,
-								Rule:        "输出结果",
-								ConnTimeout: -1,
-							})
+                            urlReg:=regexp.MustCompile("https?://(.*?).58.com")                       
+                            if ok:=urlReg.MatchString(url);ok {
+                                //logs.Log.Informational("请求房源地址：%s",url)
+                                ctx.AddQueue(&request.Request{
+                                    Url:         url,
+                                    Rule:        "输出结果",
+                                    ConnTimeout: -1,
+                                    Priority: 1,
+                                   
+                                })
+                            }
+                           
 						})
 				},
 			},
@@ -129,9 +137,14 @@ var FangYuan58 = &Spider{
 				},
 				ParseFunc: func(ctx *Context) {
 					query := ctx.GetDom()
+                    //判断页面是否存在  
+                    notfoundReg:=regexp.MustCompile("(你要找的页面不在这个星球上)|(地球上没有找到相关信息)")
+                    if ok:=notfoundReg.MatchString(query.Text());ok{
+                        return
+                    }
 					var 城市, 区域,商圈,小区, 地址,出租类型,房屋类型,房间大小,户型,租金,配置,装修,更新时间,楼层,经纪人,联系电话,链家发布 string
                     var 单价 int
-                    城市 = query.Find("#topbar > div > div.bar_left.f16 > h2").Text()
+                    城市 = query.Find("#topbar > div > div.bar_left > h2").Text()
                     
                     租金 =strings.TrimSpace(query.Find("em.house-price").Text())   
                     
