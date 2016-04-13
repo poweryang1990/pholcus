@@ -37,22 +37,22 @@ type HouseSourceVar struct{
 }
 var houseSourceSet=map[string]HouseSourceVar{
     "成都":HouseSourceVar{
-        MaxPage:1,
+        MaxPage:100,
         CityCode:"cd",
         Areas:[]string{"jinjiang","qingyang","wuhou","gaoxinnan","chenghua","jinniu","tianfuxinqu","shuangliu","wenjiang","pixian","longanyi","xindou"},
     },
     "武汉":HouseSourceVar{
-        MaxPage:1,
+        MaxPage:100,
         CityCode:"wh",
         Areas:[]string{"jiangan","jianghan","qiaokou","dongxihu","wuchang","qingshan","hongshan","hanyang"},
     },
     "北京":HouseSourceVar{
-        MaxPage:1,
+        MaxPage:100,
         CityCode:"bj",
         Areas:[]string{"dongcheng","xicheng","chaoyang","haidian","fengtai","shijingshan","tongzhou","changping","daxing","yizhuangkaifaqu","shunyi","fangshan","mentougou","pinggu","huairou","miyun","yanqing","yanjiao"},
     },
     "杭州":HouseSourceVar{
-        MaxPage:1,
+        MaxPage:100,
         CityCode:"hz",
         Areas:[]string{"jiande","xihu","xiacheng","jianggan","gongshu","shangcheng","binjiang","yuhang","xiaoshan","linan"},
     },
