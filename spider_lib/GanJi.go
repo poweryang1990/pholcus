@@ -65,9 +65,11 @@ var GanJi = &Spider{
 	// Keyin:   KEYIN,
 	// Limit:        LIMIT,
 	EnableCookie: false,
-    Namespace: nil,
+    Namespace: func(self *Spider) string {
+		return "housesource_ganji"//表名
+	},
     SubNamespace: func(self *Spider, dataCell map[string]interface{}) string {
-		return "housesource_ganji"
+		return ""//根据数据内容来划分 用来才拆分多个表
 	},
 	RuleTree: &RuleTree{
 		Root: func(ctx *Context) {

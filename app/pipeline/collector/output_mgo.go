@@ -33,7 +33,7 @@ func init() {
 				subNamespace := util.FileNameReplace(self.subNamespace(datacell))
 				var cName = namespace
 				if subNamespace != "" {
-					cName += "__" + subNamespace
+					cName += "_" + subNamespace
 				}
 				if _, ok := collections[subNamespace]; !ok {
 					collections[subNamespace] = db.C(cName)

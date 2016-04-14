@@ -65,9 +65,11 @@ var FangYuan58 = &Spider{
 	// Keyin:   KEYIN,
 	// Limit:        LIMIT,
 	EnableCookie: false,
-    Namespace: nil,
+    Namespace: func(self *Spider) string {
+		return "housesource_58"//表名
+	},
     SubNamespace: func(self *Spider, dataCell map[string]interface{}) string {
-		return "housesource_58"
+		return ""//根据数据内容来划分 用来才拆分多个表
 	},
 	RuleTree: &RuleTree{
 		Root: func(ctx *Context) {
@@ -136,16 +138,19 @@ var FangYuan58 = &Spider{
 					"城市", "区域","商圈","小区", "地址","出租类型","房屋类型","房间大小","户型","租金","配置","装修","更新时间","楼层","经纪人","联系电话","链家发布","单价",
 				},
 				ParseFunc: func(ctx *Context) {
+
 					query := ctx.GetDom()
                     //判断页面是否存在  
-                    notfoundReg:=regexp.MustCompile("(你要找的页面不在这个星球上)|(地球上没有找到相关信息)")
-                    if ok:=notfoundReg.MatchString(query.Text());ok{
+                    notfoundReg:=regexp.MustCompile("(你要找的页面不在这个星球上)|(地球上没有找到相关信息)|(404 Not Found)")
+                    if ok:=ctx.GetResponse().StatusCode==404||notfoundReg.MatchString(query.Text());ok{
                         return
                     }
+                    spaceReg:=regexp.MustCompile("\\s+")//去除空格等
+                     
 					var 城市, 区域,商圈,小区, 地址,出租类型,房屋类型,房间大小,户型,租金,配置,装修,更新时间,楼层,经纪人,联系电话,链家发布 string
                     var 单价 int
-                    城市 = query.Find("#topbar > div > div.bar_left > h2").Text()
-                    
+                    //城市 = query.Find("#topbar  .bar_left h2").Text() //好奇怪 这样抓取不到
+                    城市 = strings.Replace(query.Find(".headerWrap .headerMain .headerLeft span").Eq(1).Find("a").Text(),"租房","",-1)
                     租金 =strings.TrimSpace(query.Find("em.house-price").Text())   
                     
                     区域=query.Find("div.xiaoqu a").Eq(0).Text();
@@ -157,9 +162,12 @@ var FangYuan58 = &Spider{
                     if xiaoquLength>2 {
                         小区=query.Find("div.xiaoqu a").Eq(2).Text()
                     }else{
-                        小区=query.Find("div.xiaoqu").Text()
+                        小区=spaceReg.ReplaceAllString(query.Find("div.xiaoqu").Text(),"")
+                        小区=strings.Replace(小区,区域,"",-1)
+                        小区=strings.Replace(小区,商圈,"",-1)
+                        小区=strings.Replace(小区,"-","",-1)
                     }
-                   
+                        小区=strings.TrimSpace(小区)
                     
                   
                     houseInfoText:=query.Find(".house-type").Text()
@@ -170,11 +178,12 @@ var FangYuan58 = &Spider{
                     houseFloorReg:=regexp.MustCompile("(\\d+)/(\\d+)层")
                     houseRoomReg:=regexp.MustCompile("主卧|次卧|隔断")
                     
+                   
                     房屋类型=strings.Replace(houseTypeReg.FindString(houseInfoText)," ","",-1)
                     房屋类型=strings.Replace(房屋类型,"\n","",-1)
                     房间大小=strings.Replace(houseSizeReg.FindString(houseInfoText),"m²","",-1)
                     房间大小=strings.TrimSpace(房间大小)
-                    户型=houseHuXinReg.FindString(houseInfoText)
+                    户型=spaceReg.ReplaceAllString(houseHuXinReg.FindString(houseInfoText)," ")
                     装修=houseZhuangXiuReg.FindString(houseInfoText)
                     楼层=houseFloorReg.FindString(houseInfoText)
                       isZhengzu:=strings.Index(quyuHref,"zufang")>=0

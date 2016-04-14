@@ -9,15 +9,15 @@ var Html = function(info) {
                 <table class="table table-hover">\
                   <tbody id="allSpiders">\
                     <tr>\
-                      <th>#</th>\
-                      <th>ID</th>\
-                      <th>Name</th>\
-                      <th>Description</th>\
+                      <th><input id="spider-all" type="checkbox" disabled="true"/></th>\
+                      <th>编号</th>\
+                      <th>名称</th>\
+                      <th>描述</th>\
                     </tr>' + spidersHtml(info.spiders) + '</tbody></table></div></div>\
             <div class="form-2 box">\
               <div class="form-group">\
                 <label>自定义配置（多任务请分别多包一层“<>”）</label>\
-                <textarea name="Keyins" class="form-control" rows="2" placeholder="Enter ...">' + info.Keyins + '</textarea>\
+                <textarea name="Keyins" class="form-control" rows="2" placeholder="请输入Keyins...">' + info.Keyins + '</textarea>\
               </div>\
             <div class="inline">\
               <div class="form-group">\
@@ -144,8 +144,8 @@ var SuccessInheritHtml = function(SuccessInherit) {
         False = " selected";
     };
 
-    html += '<option value="true"' + True + '>' + "Yes" + '</option>';
-    html += '<option value="false"' + False + '>' + "No" + '</option>';
+    html += '<option value="true"' + True + '>' + "是" + '</option>';
+    html += '<option value="false"' + False + '>' + "否" + '</option>';
     return html + '</select></div>';
 }
 
@@ -162,28 +162,28 @@ var FailureInheritHtml = function(FailureInherit) {
         False = " selected";
     };
 
-    html += '<option value="true"' + True + '>' + "Yes" + '</option>';
-    html += '<option value="false"' + False + '>' + "No" + '</option>';
+    html += '<option value="true"' + True + '>' + "是" + '</option>';
+    html += '<option value="false"' + False + '>' + "否" + '</option>';
     return html + '</select></div>';
 }
 
 var btnHtml = function(mode, status) {
     if (parseInt(mode) != offline) {
-        return '<button type="submit" id="btn-run" class="btn btn-primary" data-type="run">Run</button>';
+        return '<button type="submit" id="btn-run" class="btn btn-primary" data-type="run">启动</button>';
     }
     switch (status) {
         case _stopped:
-            return '<button type="button" id="btn-pause" class="btn btn-warning" onclick="pauseRecover()" disabled="disabled">Pause</button>\
-            <button type="submit" id="btn-run" class="btn btn-primary" data-type="run">Run</button>';
+            return '<button type="button" id="btn-pause" class="btn btn-warning" onclick="pauseRecover()" disabled="disabled">暂停</button>\
+            <button type="submit" id="btn-run" class="btn btn-primary" data-type="run">启动</button>';
         case _stop:
-            return '<button type="button" id="btn-pause" class="btn btn-warning" onclick="pauseRecover()" disabled="disabled">Pause</button>\
-            <button type="submit" id="btn-run" class="btn btn-danger" data-type="stop" disabled="disabled">Stopping...</button>';
+            return '<button type="button" id="btn-pause" class="btn btn-warning" onclick="pauseRecover()" disabled="disabled">暂停</button>\
+            <button type="submit" id="btn-run" class="btn btn-danger" data-type="stop" disabled="disabled">停止中...</button>';
         case _run:
-            return '<button type="button" id="btn-pause" class="btn btn-warning" onclick="pauseRecover()" style="display:inline-block;" >Pause</button>\
-            <button type="submit" id="btn-run" class="btn btn-danger" data-type="stop">Stop</button>';
+            return '<button type="button" id="btn-pause" class="btn btn-warning" onclick="pauseRecover()" style="display:inline-block;" >暂停</button>\
+            <button type="submit" id="btn-run" class="btn btn-danger" data-type="stop">停止</button>';
         case _pause:
-            return '<button type="button" id="btn-pause" class="btn btn-info" onclick="pauseRecover()" style="display:inline-block;" >Go on...</button>\
-            <button type="submit" id="btn-run" class="btn btn-danger" data-type="stop">Stop</button>';
+            return '<button type="button" id="btn-pause" class="btn btn-info" onclick="pauseRecover()" style="display:inline-block;" >继续...</button>\
+            <button type="submit" id="btn-run" class="btn btn-danger" data-type="stop">停止</button>';
     }
 }
 
