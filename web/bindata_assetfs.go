@@ -32,7 +32,7 @@
 // static/layer/skin/layer.ext.css
 // DO NOT EDIT!
 
-package main
+package web
 
 import (
 	"github.com/elazarl/go-bindata-assetfs"
