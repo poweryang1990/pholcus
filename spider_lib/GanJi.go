@@ -37,7 +37,7 @@ type HouseSourceGanJi struct{
 }
 var houseSourceSetGanJi=map[string]HouseSourceGanJi{
     "成都":HouseSourceGanJi{
-        MaxPage:100,
+        MaxPage:1,
         CityCode:"cd",
         Areas:[]string{"jinjiang"},
     },
@@ -114,23 +114,24 @@ var GanJi = &Spider{
 								Url:         "   ",
 								Rule:        "输出结果",
 								ConnTimeout: -1,
+                                Priority: 1,
 							})
-                      ctx.AddQueue(&request.Request{
-								Url:         "http://cd.ganji.com/fang1/2062280443x.htm",
-								Rule:        "输出结果",
-								ConnTimeout: -1,
-							})
+                    //   ctx.AddQueue(&request.Request{
+					// 			Url:         "http://cd.ganji.com/fang1/2062280443x.htm",
+					// 			Rule:        "输出结果",
+					// 			ConnTimeout: -1,
+					// 		})
                             
-                            ctx.AddQueue(&request.Request{
-                            Url:         "http://cd.ganji.com/fang1/1966321621x.htm",
-                            Rule:        "输出结果",
-                            ConnTimeout: -1,
-                        })
-                            ctx.AddQueue(&request.Request{
-                            Url:         "http://cd.ganji.com/fang1/1857187644x.htm",
-                            Rule:        "输出结果",
-                            ConnTimeout: -1,
-                        })
+                    //         ctx.AddQueue(&request.Request{
+                    //         Url:         "http://cd.ganji.com/fang1/1966321621x.htm",
+                    //         Rule:        "输出结果",
+                    //         ConnTimeout: -1,
+                    //     })
+                    //         ctx.AddQueue(&request.Request{
+                    //         Url:         "http://cd.ganji.com/fang1/1857187644x.htm",
+                    //         Rule:        "输出结果",
+                    //         ConnTimeout: -1,
+                    //     })
 					// ctx.GetDom().
 					// 	Find("ul.pageLink.clearfix a").
 					// 	Each(func(i int, s *goquery.Selection) {
