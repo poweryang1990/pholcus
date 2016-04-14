@@ -173,7 +173,7 @@ var FangYuan58 = &Spider{
                   
                     houseInfoText:=query.Find(".house-type").Text()
                     houseTypeReg:=regexp.MustCompile("([\u4E00-\u9FA5]{0,2}住宅)|公寓|别墅|商住楼|商住两用|其他|(平房/四合院)")
-                    houseSizeReg:=regexp.MustCompile("(\\d+)(\\s+)m²")
+                    houseSizeReg:=regexp.MustCompile("(\\d+)(\\.?)(\\d+)(\\s+)m²")
                     houseHuXinReg:=regexp.MustCompile("(\\d+)室(\\s+)(\\d+)厅(\\s+)(\\d+)卫")
                     houseZhuangXiuReg:=regexp.MustCompile("[\u4E00-\u9FA5]{1,2}装修")
                     houseFloorReg:=regexp.MustCompile("(\\d+)/(\\d+)层")
