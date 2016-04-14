@@ -68,9 +68,9 @@ var GanJi = &Spider{
     Namespace: func(self *Spider) string {
 		return "housesource_ganji"//表名
 	},
-    SubNamespace: func(self *Spider, dataCell map[string]interface{}) string {
-		return ""//根据数据内容来划分 用来才拆分多个表
-	},
+     //SubNamespace: func(self *Spider, dataCell map[string]interface{}) string {
+	//	return dataCell["Data"].(map[string]interface{})["城市"].(string)//根据数据内容来划分 用来才拆分多个表 不能返回 "" 可以返回 nil(默认)
+	//},
 	RuleTree: &RuleTree{
 		Root: func(ctx *Context) {
             for setting := range houseSourceSetGanJi {

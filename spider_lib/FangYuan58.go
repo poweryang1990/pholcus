@@ -68,9 +68,9 @@ var FangYuan58 = &Spider{
     Namespace: func(self *Spider) string {
 		return "housesource_58"//表名
 	},
-    SubNamespace: func(self *Spider, dataCell map[string]interface{}) string {
-		return ""//根据数据内容来划分 用来才拆分多个表
-	},
+    //SubNamespace: func(self *Spider, dataCell map[string]interface{}) string {
+	//	return dataCell["Data"].(map[string]interface{})["城市"].(string)//根据数据内容来划分 用来才拆分多个表 不能返回 "" 可以返回 nil(默认)
+	//},
 	RuleTree: &RuleTree{
 		Root: func(ctx *Context) {
             for setting := range housesourceSettings {
@@ -150,7 +150,8 @@ var FangYuan58 = &Spider{
 					var 城市, 区域,商圈,小区, 地址,出租类型,房屋类型,房间大小,户型,租金,配置,装修,更新时间,楼层,经纪人,联系电话,链家发布 string
                     var 单价 int
                     //城市 = query.Find("#topbar  .bar_left h2").Text() //好奇怪 这样抓取不到
-                    城市 = strings.Replace(query.Find(".headerWrap .headerMain .headerLeft span").Eq(1).Find("a").Text(),"租房","",-1)
+                    cityFindReg:=regexp.MustCompile("合租房|租房")//去除空格等
+                    城市 = cityFindReg.ReplaceAllString(query.Find(".headerWrap .headerMain .headerLeft span").Eq(1).Find("a").Text(),"")
                     租金 =strings.TrimSpace(query.Find("em.house-price").Text())   
                     
                     区域=query.Find("div.xiaoqu a").Eq(0).Text();
