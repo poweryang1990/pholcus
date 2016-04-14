@@ -25,7 +25,7 @@ func init() {
 			subNamespace := util.FileNameReplace(self.subNamespace(datacell))
 			var tName = namespace
 			if subNamespace != "" {
-				tName += "__" + subNamespace
+				tName += "_" + subNamespace
 			}
 			if _, ok := mysqls[subNamespace]; !ok {
 				mysqls[subNamespace] = mysql.New(db)

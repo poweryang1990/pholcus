@@ -10,7 +10,7 @@ func (self *Collector) namespace() string {
 		if self.Spider.GetSubName() == "" {
 			return self.Spider.GetName()
 		}
-		return self.Spider.GetName() + "__" + self.Spider.GetSubName()
+		return self.Spider.GetName() + "_" + self.Spider.GetSubName()
 	}
 	return self.Spider.Namespace(self.Spider)
 }
