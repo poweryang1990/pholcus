@@ -9,7 +9,7 @@ var Html = function(info) {
                 <table class="table table-hover">\
                   <tbody id="allSpiders">\
                     <tr>\
-                      <th><input name="spiders" id="spider-all" type="checkbox" disabled="true"/></th>\
+                      <th><input id="spider-all" type="checkbox" disabled="true"/></th>\
                       <th>编号</th>\
                       <th>名称</th>\
                       <th>描述</th>\
