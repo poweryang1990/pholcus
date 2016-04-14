@@ -27,14 +27,14 @@ func init() {
 			if subNamespace != "" {
 				tName += "_" + subNamespace
 			}
-			if _, ok := mysqls[subNamespace]; !ok {
-				mysqls[subNamespace] = mysql.New(db)
-				mysqls[subNamespace].SetTableName(tName)
+			if _, ok := mysqls[tName]; !ok {
+				mysqls[tName] = mysql.New(db)
+				mysqls[tName].SetTableName(tName)
 				for _, title := range self.MustGetRule(datacell["RuleName"].(string)).ItemFields {
-					mysqls[subNamespace].AddColumn(title + ` MEDIUMTEXT`)
+					mysqls[tName].AddColumn(title + ` MEDIUMTEXT`)
 				}
 
-				mysqls[subNamespace].
+				mysqls[tName].
 					AddColumn(`Url VARCHAR(255)`, `ParentUrl VARCHAR(255)`, `DownloadTime VARCHAR(50)`).
 					Create()
 			}
@@ -48,7 +48,7 @@ func init() {
 				}
 			}
 			data = append(data, datacell["Url"].(string), datacell["ParentUrl"].(string), datacell["DownloadTime"].(string))
-			mysqls[subNamespace].AutoInsert(data)
+			mysqls[tName].AutoInsert(data)
 		}
 		for _, tab := range mysqls {
 			util.CheckErr(tab.FlushInsert())
