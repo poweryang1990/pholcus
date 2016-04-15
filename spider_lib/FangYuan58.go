@@ -35,7 +35,7 @@ var housesourceSettings=map[string]HouseSourceSetting{
     "成都":HouseSourceSetting{
         MaxPage:70,
         CityCode:"cd",
-        Areas:[]string{"jinjiang","chenghua","jinniu","qingyangqu","cdgaoxin","gaoxinxiqu"},
+        Areas:[]string{"jinjiang","chenghua","jinniu","qingyangqu","cdgaoxin","gaoxinxiqu","longquanyi","shuangliu","wenjiang","pixian","gaoxinxiqu"},
     },
     "武汉":HouseSourceSetting{
         MaxPage:70,
