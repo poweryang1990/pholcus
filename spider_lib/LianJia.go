@@ -24,6 +24,7 @@ import (
 	"fmt"
 	//"time"
 	"regexp"
+	"time"
 )
 
 func init() {
@@ -91,7 +92,7 @@ var LianJia = &Spider{
                                 Rule: "获取列表",
                                 ConnTimeout: -1,
 								Reloadable: true,
-								Temp: map[string]interface{}{"site":fmt.Sprintf("http://%s.lianjia.com",value.CityCode)},
+								Temp: map[string]interface{}{"site":fmt.Sprintf("http://%s.lianjia.com",value.CityCode),"citycode":value.CityCode},
                             })
                             
                         }   
@@ -107,8 +108,9 @@ var LianJia = &Spider{
 						Find("ul.house-lst .pic-panel a").
 						Each(func(i int, s *goquery.Selection) {
 							url, _ := s.Attr("href")
-							var site string
+							var site,citycode string
                             ctx.GetTemp("site", &site)
+							ctx.GetTemp("citycode", &citycode)
                             httpUrlReg:=regexp.MustCompile("https?://(.*?)+")
                             
                             if !httpUrlReg.MatchString(url) {
@@ -119,6 +121,7 @@ var LianJia = &Spider{
 								Rule: "输出结果",
 								ConnTimeout: -1,
 								Priority: 1,
+								Temp: map[string]interface{}{"citycode":citycode},
 							})
 						})
 				},
@@ -130,57 +133,107 @@ var LianJia = &Spider{
 					"城市", "区域","商圈","小区", "地址","出租类型","房屋类型","房间大小","户型","租金","配置","装修","更新时间","楼层","经纪人","联系电话","链家发布","单价",
 				},
 				ParseFunc: func(ctx *Context) {
+					var citycode string
+					ctx.GetTemp("citycode", &citycode)
+							
 					query := ctx.GetDom()
 					var 城市, 区域,商圈,小区, 地址,出租类型,房屋类型,房间大小,户型,租金,配置,装修,更新时间,楼层,经纪人,联系电话,链家发布 string
                     var 单价 float64
-                    
-                     城市 = strings.Replace(query.Find(".fl.l-txt a").Eq(1).Text(),"租房","",-1)
-                     区域 = strings.Replace(query.Find(".fl.l-txt a").Eq(2).Text(),"租房","",-1)
-                     商圈 = strings.Replace(query.Find(".fl.l-txt a").Eq(3).Text(),"租房","",-1)
-                   
-                    // 地址 = query.Find("#lj-common-bread > div.container > div.fl l-txt").Text()
-                     出租类型 = "整租"
-                    // 房屋类型 = query.Find("#lj-common-bread > div.container > div.fl l-txt").Text()
-                    // 配置 = query.Find("#lj-common-bread > div.container > div.fl l-txt").Text()
-                     装修 = query.Find(".decoration-ex span").Text()
-                  
-                 
-                    
-                    query.Find(".info-box.left dl").Each(func(i int,  s *goquery.Selection) {
-						dt := s.Find("dt").Text()
-                        
-						switch dt {
-						case "租金：":  
-							租金 = s.Find(".ft-num").Text()
-                            房间大小=strings.Replace(s.Find(".em-text i").Text(),"㎡","",-1)
-                            房间大小=strings.Replace(房间大小,"/","",-1)
-                            房间大小=strings.TrimSpace(房间大小)
-                            
-                        case "户型：":  
-							户型 = s.Find("dd").Text()
-                            
-                        case "楼层：":  
-							楼层 = s.Find("dd").Text()
-                                
-                        case "小区：":  
-							小区 = s.Find(".zone-name.laisuzhou").Text()
-                               
-                        case "更新：":  
-							更新时间 = s.Find("dd").Text()
-                            更新时间=strings.Replace(更新时间,"年","-",-1)
-                            更新时间=strings.Replace(更新时间,"月","-",-1)
-                            更新时间=strings.Replace(更新时间,"日","-",-1)       
+					
+                    if citycode=="cd"||citycode=="bj" {
+						城市 = strings.Replace(query.Find(".fl.l-txt a").Eq(1).Text(),"租房","",-1)
+						区域 = strings.Replace(query.Find(".fl.l-txt a").Eq(2).Text(),"租房","",-1)
+						商圈 = strings.Replace(query.Find(".fl.l-txt a").Eq(3).Text(),"租房","",-1)
+					
+						// 地址 = query.Find("#lj-common-bread > div.container > div.fl l-txt").Text()
+						出租类型 = "整租"
+						// 房屋类型 = query.Find("#lj-common-bread > div.container > div.fl l-txt").Text()
+						// 配置 = query.Find("#lj-common-bread > div.container > div.fl l-txt").Text()
+						装修 = query.Find(".decoration-ex span").Text()
+					
+					
+						
+						query.Find(".info-box.left dl").Each(func(i int,  s *goquery.Selection) {
+							dt := s.Find("dt").Text()
+							
+							switch dt {
+							case "租金：":  
+								租金 = s.Find(".ft-num").Text()
+								房间大小=strings.Replace(s.Find(".em-text i").Text(),"㎡","",-1)
+								房间大小=strings.Replace(房间大小,"/","",-1)
+								房间大小=strings.TrimSpace(房间大小)
+								
+							case "户型：":  
+								户型 = s.Find("dd").Text()
+								
+							case "楼层：":  
+								楼层 = s.Find("dd").Text()
+									
+							case "小区：":  
+								小区 = s.Find(".zone-name.laisuzhou").Text()
+								
+							case "更新：":  
+								更新时间 = s.Find("dd").Text()
+								更新时间=strings.Replace(更新时间,"年","-",-1)
+								更新时间=strings.Replace(更新时间,"月","-",-1)
+								更新时间=strings.Replace(更新时间,"日","-",-1)       
+							}
+						})
+						经纪人 = query.Find(".p-del.right .p-01 a").Eq(0).Text()
+						联系电话 = query.Find(".contact-panel .ft-num").Text()
+						链家发布 = "是"
+						
+						price,_:= strconv.ParseFloat(租金,64)   
+						size,_:=strconv.ParseFloat(房间大小,64)
+						if size!=0 {
+						单价= Round(price/size,2)
 						}
-					})
-                    经纪人 = query.Find(".p-del.right .p-01 a").Eq(0).Text()
-                    联系电话 = query.Find(".contact-panel .ft-num").Text()
-                    链家发布 = "是"
-                    
-                    price,_:= strconv.ParseFloat(租金,64)   
-                    size,_:=strconv.ParseFloat(房间大小,64)
-                    if size!=0 {
-                     单价= Round(price/size,2)
-                    }
+					}
+                      if citycode=="wh"||citycode=="hz" {
+						城市 = strings.Replace(query.Find(".fl.l-txt a").Eq(1).Text(),"租房","",-1)
+						区域 = strings.Replace(query.Find(".fl.l-txt a").Eq(2).Text(),"租房","",-1)
+						商圈 = strings.Replace(query.Find(".fl.l-txt a").Eq(3).Text(),"租房","",-1)
+					
+						
+						出租类型 = "整租"
+						
+						租金 = query.Find("div.price span.total").Text()
+						
+						query.Find("div.content.zf-content  div.zf-room p").Each(func(i int,  s *goquery.Selection) {
+							
+							dt := s.Find("i").Text()
+							content:=strings.Replace(s.Text(),dt,"",-1)
+							switch dt {
+							case "面积：":  
+								房间大小=strings.Replace(content,"平米","",-1)
+								房间大小=strings.TrimSpace(房间大小)
+								
+							case "房屋户型：":  
+								户型 = strings.TrimSpace(content)
+								
+							case "楼层：":  
+								楼层 = strings.TrimSpace(content)
+									
+							case "小区：":  
+								小区 = s.Find("a").Eq(0).Text()
+								
+							case "时间：":  
+								daysAgo:=strings.TrimSpace(strings.Replace(content,"天前发布","",-1))
+								durmi,_ := time.ParseDuration("-"+daysAgo+"d")
+								更新时间=time.Now().Add(durmi).Format("2006-01-02")     
+							}
+						})
+						spaceReg:=regexp.MustCompile("\\s+")//去除空格等
+						经纪人 = query.Find(".brokerInfoText .brokerName a").Eq(0).Text()
+						联系电话 =spaceReg.ReplaceAllString(query.Find(".brokerInfoText .phone").Text(),"")
+						链家发布 = "是"
+						
+						price,_:= strconv.ParseFloat(租金,64)   
+						size,_:=strconv.ParseFloat(房间大小,64)
+						if size!=0 {
+						单价= Round(price/size,2)
+						}
+					}
                    
 
 					// 结果输出方式一（推荐）
