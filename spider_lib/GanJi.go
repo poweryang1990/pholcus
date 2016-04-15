@@ -141,10 +141,12 @@ var GanJi = &Spider{
                     
                     query.Find(".basic-info-ul li").Each(func(i int,  s *goquery.Selection) {
 						dt := s.Find(".fc-gray9").Text()  //这里需要去掉中间的空格i标签
-
-                        houseTypeReg:=regexp.MustCompile("(\\d+)室(\\d+)厅(\\d+)卫")
-                        //houseSizeReg:=regexp.MustCompile("(\\d+)(\\s+)㎡")
-
+                        houseTypeReg:=regexp.MustCompile("((\\d+)室(\\d+)厅(\\d+)卫)|((\\d+)室(\\d+)卫)|((\\d+)室(\\d+)厅)")
+                        houseTypeInfoReg:=regexp.MustCompile("([\u4E00-\u9FA5]{0,2}住宅)|公寓|别墅|商住楼|商住两用|其他|(平房/四合院)")
+                        houseZhuangXiuReg:=regexp.MustCompile("[\u4E00-\u9FA5]{1,2}装修")
+                        houseFloorReg:=regexp.MustCompile("(\\d+)/(\\d+)")
+                        houseSizeReg:=regexp.MustCompile("(\\d+)(\\.?)(\\d+)(\\s+)㎡")
+                        houseRoomReg:=regexp.MustCompile("([\u4E00-\u9FA5]{1,4}租)|主卧|次卧|隔断|单间")
 						switch dt {
 						case "租金：":  
 							租金 = strings.TrimSpace(s.Find("b").Text())
@@ -152,17 +154,17 @@ var GanJi = &Spider{
                         case "户型：":  
 							houseTypeInfo := s.Text()
                             户型= houseTypeReg.FindString(houseTypeInfo)
-                            出租类型 = strings.Split(houseTypeInfo, "-")[1]
-                            房间大小= strings.TrimSpace(strings.Replace(strings.Split(houseTypeInfo, "-")[2],"㎡","",-1))
-                            房间大小 = strings.Split(房间大小,".")[0]
-                            
+                            出租类型 = strings.TrimSpace(houseRoomReg.FindString(houseTypeInfo))
+                            房间大小= houseSizeReg.FindString(houseTypeInfo)
+                            房间大小= strings.Replace(房间大小,"㎡","",-1)
+                            房间大小= strings.TrimSpace(房间大小)
                         case "概况：":  
 							houseTypeInfo := s.Text()
-                            房屋类型= strings.Split(houseTypeInfo, "-")[1]
-                            装修 = strings.Split(houseTypeInfo, "-")[2]
+                            房屋类型 = strings.TrimSpace(houseTypeInfoReg.FindString(houseTypeInfo))
+                            装修 = strings.TrimSpace(houseZhuangXiuReg.FindString(houseTypeInfo))
                             
                         case "楼层：":  
-							楼层 = strings.TrimSpace(strings.Split(s.Text(), "：")[1])+"层"
+							楼层 = strings.TrimSpace(houseFloorReg.FindString(s.Text()))+"层"
                                  
                         case "小区：":  
 							 小区 = strings.TrimSpace(s.Find("div.spc-cont a").Eq(0).Text())
