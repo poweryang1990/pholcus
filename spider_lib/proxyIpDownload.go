@@ -23,6 +23,7 @@ import (
 	"fmt"
 	// "math"
 	//"time"
+	"regexp"
 )
 
 func init() {
@@ -82,9 +83,9 @@ var ProxyIpDownload = &Spider{
                                 return
                             }
 							var Url,IP,Port,Address,Type string
-                            IP=s.Find("td").Eq(0).Text()
-                            Port=s.Find("td").Eq(1).Text()
-                            Address=s.Find("td").Eq(2).Text()
+                            IP=strings.TrimSpace(s.Find("td").Eq(0).Text())
+                            Port=strings.TrimSpace(s.Find("td").Eq(1).Text())
+                            Address=strings.TrimSpace(s.Find("td").Eq(2).Text())
                             Type=strings.TrimSpace(s.Find("td").Eq(3).Text())
                             switch Type {
                                 case "HTTP":
@@ -92,6 +93,8 @@ var ProxyIpDownload = &Spider{
                                  case "HTTPS":
                                     Url="https://"+IP+":"+Port
                             }
+                            spaceReg:=regexp.MustCompile("\\s+")
+                            Url=spaceReg.ReplaceAllString(Url,"")
                             ctx.Output(map[int]interface{}{
                                 0:Url,1:IP,2:Port,3: Address,4:Type,
                             })
