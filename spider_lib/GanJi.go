@@ -39,23 +39,23 @@ var houseSourceSetGanJi=map[string]HouseSourceGanJi{
     "成都":HouseSourceGanJi{
         MaxPage:1,
         CityCode:"cd",
-        Areas:[]string{"jinjiang"},
+        Areas:[]string{"wuhou","qingyang","jinniu","jinjiang","chenghua","gaoxin","shuangliu","wenjiang","pixian","gaoxinxiqu","longquanyi","xindu","qingbaijiang","jintang","dujiangyan","pengzhou","xinjin","chongzhou","dayi","qionglai","pujiang","qita"},
     },
-    // "武汉":HouseSourceGanJi{
-    //     MaxPage:100,
-    //     CityCode:"wh",
-    //     Areas:[]string{"jiangan","jianghan","qiaokou","dongxihu","wuchang","qingshan","hongshan","hanyang"},
-    // },
-    // "北京":HouseSourceGanJi{
-    //     MaxPage:100,
-    //     CityCode:"bj",
-    //     Areas:[]string{"dongcheng","xicheng","chaoyang","haidian","fengtai","shijingshan","tongzhou","changping","daxing","yizhuangkaifaqu","shunyi","fangshan","mentougou","pinggu","huairou","miyun","yanqing","yanjiao"},
-    // },
-    // "杭州":HouseSourceGanJi{
-    //     MaxPage:100,
-    //     CityCode:"hz",
-    //     Areas:[]string{"jiande","xihu","xiacheng","jianggan","gongshu","shangcheng","binjiang","yuhang","xiaoshan","linan"},
-    // },
+    "武汉":HouseSourceGanJi{
+        MaxPage:100,
+        CityCode:"wh",
+        Areas:[]string{"jianghan","jiangan","qiaokou","wuchang","hongshan","qingshan","hanyang","jingjijishukaifaqu","dongxihu","caidian","huangbei","xinzhou","jiangxia","hannan"},
+    },
+    "北京":HouseSourceGanJi{
+        MaxPage:100,
+        CityCode:"bj",
+        Areas:[]string{"haidian","chaoyang","dongcheng","xicheng","chongwen","xuanwu","fengtai","shijingshan","changping","tongzhou","daxing","shunyi","fangshan","miyun","mentougou","huairou","pinggu","yanqing","yanjiao","beijingzhoubian"},
+    },
+    "杭州":HouseSourceGanJi{
+        MaxPage:100,
+        CityCode:"hz",
+        Areas:[]string{"gongshu","xihu","shangcheng","xiacheng","jianggan","binjiang","xiaoshan","yuhang","linan","fuyang","tonglu","jiande","chunan"},
+    },
    
 }
 var GanJi = &Spider{
