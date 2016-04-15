@@ -125,8 +125,8 @@ var GanJi = &Spider{
                             url=site+url
                         }
                         ctx.AddQueue(&request.Request{
-                        Url:url,
-                            Rule:        "输出结果",
+                            Url:url,
+                            Rule: "输出结果",
                             ConnTimeout: -1,
                             Priority: 1,
                         })

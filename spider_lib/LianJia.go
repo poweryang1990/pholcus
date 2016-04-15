@@ -122,9 +122,10 @@ var LianJia = &Spider{
                             }
                             logs.Log.Informational("请求房源地址：%s",url)
 							ctx.AddQueue(&request.Request{
-								Url:         url,
-								Rule:        "输出结果",
+								Url: url,
+								Rule: "输出结果",
 								ConnTimeout: -1,
+								Priority: 1,
 							})
 						})
 				},
