@@ -30,28 +30,23 @@ func init() {
 	GanJi.Register()
 }
 
-type HouseSourceGanJi struct{
-    MaxPage int
-    CityCode string
-    Areas []string
-}
-var houseSourceSetGanJi=map[string]HouseSourceGanJi{
-    "成都":HouseSourceGanJi{
+var houseSourceSetGanJi=map[string]HouseSourceSetting{
+    "成都":HouseSourceSetting{
         MaxPage:1,
         CityCode:"cd",
         Areas:[]string{"wuhou","qingyang","jinniu","jinjiang","chenghua","gaoxin","shuangliu","wenjiang","pixian","gaoxinxiqu","longquanyi","xindu","qingbaijiang","jintang","dujiangyan","pengzhou","xinjin","chongzhou","dayi","qionglai","pujiang","qita"},
     },
-    "武汉":HouseSourceGanJi{
+    "武汉":HouseSourceSetting{
         MaxPage:100,
         CityCode:"wh",
         Areas:[]string{"jianghan","jiangan","qiaokou","wuchang","hongshan","qingshan","hanyang","jingjijishukaifaqu","dongxihu","caidian","huangbei","xinzhou","jiangxia","hannan"},
     },
-    "北京":HouseSourceGanJi{
+    "北京":HouseSourceSetting{
         MaxPage:100,
         CityCode:"bj",
         Areas:[]string{"haidian","chaoyang","dongcheng","xicheng","chongwen","xuanwu","fengtai","shijingshan","changping","tongzhou","daxing","shunyi","fangshan","miyun","mentougou","huairou","pinggu","yanqing","yanjiao","beijingzhoubian"},
     },
-    "杭州":HouseSourceGanJi{
+    "杭州":HouseSourceSetting{
         MaxPage:100,
         CityCode:"hz",
         Areas:[]string{"gongshu","xihu","shangcheng","xiacheng","jianggan","binjiang","xiaoshan","yuhang","linan","fuyang","tonglu","jiande","chunan"},

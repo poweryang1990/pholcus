@@ -30,11 +30,7 @@ func init() {
 	FangYuan58.Register()
 }
 
-type HouseSourceSetting struct{
-    MaxPage int
-    CityCode string
-    Areas []string
-}
+
 var housesourceSettings=map[string]HouseSourceSetting{
     "成都":HouseSourceSetting{
         MaxPage:70,

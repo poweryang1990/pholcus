@@ -22,7 +22,6 @@ import (
 	"strings"
 	// 其他包
 	"fmt"
-	"math"
 	//"time"
 	"regexp"
 )
@@ -30,32 +29,24 @@ import (
 func init() {
 	LianJia.Register()
 }
-func Round(f float64, places int) (float64) {
-    shift := math.Pow(10, float64(places))
-    return math.Floor(f * shift + .5) / shift
-}
-type HouseSourceVar struct{
-    MaxPage int
-    CityCode string
-    Areas []string
-}
-var houseSourceSet=map[string]HouseSourceVar{
-    "成都":HouseSourceVar{
+
+var houseSourceSet=map[string]HouseSourceSetting{
+    "成都":HouseSourceSetting{
         MaxPage:100,
         CityCode:"cd",
         Areas:[]string{"jinjiang","qingyang","wuhou","gaoxinnan","chenghua","jinniu","tianfuxinqu","shuangliu","wenjiang","pixian","longanyi","xindou"},
     },
-    "武汉":HouseSourceVar{
+    "武汉":HouseSourceSetting{
         MaxPage:100,
         CityCode:"wh",
         Areas:[]string{"jiangan","jianghan","qiaokou","dongxihu","wuchang","qingshan","hongshan","hanyang"},
     },
-    "北京":HouseSourceVar{
+    "北京":HouseSourceSetting{
         MaxPage:100,
         CityCode:"bj",
         Areas:[]string{"dongcheng","xicheng","chaoyang","haidian","fengtai","shijingshan","tongzhou","changping","daxing","yizhuangkaifaqu","shunyi","fangshan","mentougou","pinggu","huairou","miyun","yanqing","yanjiao"},
     },
-    "杭州":HouseSourceVar{
+    "杭州":HouseSourceSetting{
         MaxPage:100,
         CityCode:"hz",
         Areas:[]string{"jiande","xihu","xiacheng","jianggan","gongshu","shangcheng","binjiang","yuhang","xiaoshan","linan"},
