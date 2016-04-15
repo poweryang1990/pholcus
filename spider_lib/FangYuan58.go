@@ -158,7 +158,7 @@ var FangYuan58 = &Spider{
                     spaceReg:=regexp.MustCompile("\\s+")//去除空格等
                      
 					var 城市, 区域,商圈,小区, 地址,出租类型,房屋类型,房间大小,户型,租金,配置,装修,更新时间,楼层,经纪人,联系电话,链家发布 string
-                    var 单价 int
+                    var 单价 float64
                     //城市 = query.Find("#topbar  .bar_left h2").Text() //好奇怪 这样抓取不到
                     cityFindReg:=regexp.MustCompile("合租房|租房")//去除空格等
                     城市 = cityFindReg.ReplaceAllString(query.Find(".headerWrap .headerMain .headerLeft span").Eq(1).Find("a").Text(),"")
@@ -204,10 +204,10 @@ var FangYuan58 = &Spider{
                     }else{
                          出租类型=houseRoomReg.FindString(houseInfoText)
                     }
-                    price,_:= strconv.Atoi(租金)   
-                    size,_:=strconv.Atoi(房间大小)
+                    price,_:= strconv.ParseFloat(租金,64)   
+                    size,_:=strconv.ParseFloat(房间大小,64)
                     if size!=0 {
-                      单价= price/size  
+                      单价= Round(price/size,2)
                     }
                     
                     houseConfigReg:=regexp.MustCompile("暖气|宽带|空调|冰箱|电视|洗衣机|热水器|床|衣柜")

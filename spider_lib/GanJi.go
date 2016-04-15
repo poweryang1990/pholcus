@@ -22,7 +22,7 @@ import (
 	"strings"
 	// 其他包
 	"fmt"
-	// "math"
+	//"math"
 	//"time"
 )
 
@@ -142,7 +142,7 @@ var GanJi = &Spider{
 				ParseFunc: func(ctx *Context) {
 					query := ctx.GetDom()
 					var 城市, 区域,商圈,小区, 地址,出租类型,房屋类型,房间大小,户型,租金,配置,装修,更新时间,楼层,经纪人,联系电话,链家发布 string
-                    var 单价 int
+                    var 单价 float64
                     
                     query.Find(".basic-info-ul li").Each(func(i int,  s *goquery.Selection) {
 						dt := s.Find(".fc-gray9").Text()  //这里需要去掉中间的空格i标签
@@ -197,11 +197,11 @@ var GanJi = &Spider{
                         链家发布="否"
                     }
                     
-                    price,_:= strconv.Atoi(租金)   
-                    size,_:=strconv.Atoi(房间大小)
+                    price,_:= strconv.ParseFloat(租金,64)   
+                    size,_:=strconv.ParseFloat(房间大小,64)
 
                     if size!=0 {
-                      单价= price/size  
+                      单价= Round(price/size,2)
                     }
                    
 					// 结果输出方式一（推荐）

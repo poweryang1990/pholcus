@@ -4,7 +4,7 @@ package spider_lib
 import (
 	"github.com/PuerkitoBio/goquery"                        //DOM解析
 	"github.com/henrylee2cn/pholcus/app/downloader/request" //必需
-    "github.com/henrylee2cn/pholcus/logs"               //信息输出
+    //"github.com/henrylee2cn/pholcus/logs"               //信息输出
 	. "github.com/henrylee2cn/pholcus/app/spider"           //必需
 	// . "github.com/henrylee2cn/pholcus/app/spider/common"          //选用
 
@@ -22,7 +22,7 @@ import (
 	"strings"
 	// 其他包
 	"fmt"
-	// "math"
+	"math"
 	//"time"
 	"regexp"
 )
@@ -30,7 +30,10 @@ import (
 func init() {
 	LianJia.Register()
 }
-
+func Round(f float64, places int) (float64) {
+    shift := math.Pow(10, float64(places))
+    return math.Floor(f * shift + .5) / shift
+}
 type HouseSourceVar struct{
     MaxPage int
     CityCode string
@@ -120,7 +123,6 @@ var LianJia = &Spider{
                             if !httpUrlReg.MatchString(url) {
                                 url=site+url
                             }
-                            logs.Log.Informational("请求房源地址：%s",url)
 							ctx.AddQueue(&request.Request{
 								Url: url,
 								Rule: "输出结果",
@@ -139,7 +141,7 @@ var LianJia = &Spider{
 				ParseFunc: func(ctx *Context) {
 					query := ctx.GetDom()
 					var 城市, 区域,商圈,小区, 地址,出租类型,房屋类型,房间大小,户型,租金,配置,装修,更新时间,楼层,经纪人,联系电话,链家发布 string
-                    var 单价 int
+                    var 单价 float64
                     
                      城市 = strings.Replace(query.Find(".fl.l-txt a").Eq(1).Text(),"租房","",-1)
                      区域 = strings.Replace(query.Find(".fl.l-txt a").Eq(2).Text(),"租房","",-1)
@@ -183,10 +185,10 @@ var LianJia = &Spider{
                     联系电话 = query.Find(".contact-panel .ft-num").Text()
                     链家发布 = "是"
                     
-                    price,_:= strconv.Atoi(租金)   
-                    size,_:=strconv.Atoi(房间大小)
+                    price,_:= strconv.ParseFloat(租金,64)   
+                    size,_:=strconv.ParseFloat(房间大小,64)
                     if size!=0 {
-                      单价= price/size  
+                     单价= Round(price/size,2)
                     }
                    
 
