@@ -26,7 +26,7 @@ type Proxy struct {
 	online      int
 	usable      map[string]*ProxyForHost
 	ticker      *time.Ticker
-	tickMinute  int64
+	tickSecond  int64
 	threadPool  chan bool
 	surf        surfer.Surfer
 	sync.Mutex
@@ -108,9 +108,9 @@ func (self *Proxy) findOnline() *Proxy {
 }
 
 // 更新继时器
-func (self *Proxy) UpdateTicker(tickMinute int64) {
-	self.tickMinute = tickMinute
-	self.ticker = time.NewTicker(time.Duration(self.tickMinute) * time.Minute)
+func (self *Proxy) UpdateTicker(tickSecond int64) {
+	self.tickSecond = tickSecond
+	self.ticker = time.NewTicker(time.Duration(self.tickSecond) * time.Second)
 	for _, proxyForHost := range self.usable {
 		proxyForHost.curIndex++
 		proxyForHost.isEcho = true

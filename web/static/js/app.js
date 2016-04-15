@@ -217,7 +217,7 @@ function getForm() {
         'Limit': document.pholcus.elements['Limit'].value,
         'DockerCap': document.pholcus.elements['DockerCap'].value,
         'Pausetime': document.pholcus.elements['Pausetime'].value,
-        'ProxyMinute': document.pholcus.elements['ProxyMinute'].value,
+        'ProxySecond': document.pholcus.elements['ProxySecond'].value,
         'OutType': document.pholcus.elements['OutType'].value,
         'SuccessInherit': document.pholcus.elements['SuccessInherit'].value,
         'FailureInherit': document.pholcus.elements['FailureInherit'].value,

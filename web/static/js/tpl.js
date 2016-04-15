@@ -26,7 +26,7 @@ var Html = function(info) {
               </div>' +
         ThreadNumHtml(info.ThreadNum) +
         PausetimeHtml(info.Pausetime) +
-        ProxyMinuteHtml(info.ProxyMinute) +
+        ProxySecondHtml(info.ProxySecond) +
         DockerCapHtml(info.DockerCap) +
         OutTypeHtml(info.OutType) +
         SuccessInheritHtml(info.SuccessInherit) +
@@ -91,26 +91,26 @@ var PausetimeHtml = function(Pausetime) {
         if (Pausetime.menu[i] == 0) {
             html += '<option value="' + Pausetime.menu[i] + '"' + isSelect + '>' + "无暂停" + '</option>';
         } else {
-            html += '<option value="' + Pausetime.menu[i] + '"' + isSelect + '>' + Pausetime.menu[i] + ' ms</option>';
+            html += '<option value="' + Pausetime.menu[i] + '"' + isSelect + '>' + Pausetime.menu[i] + ' 毫秒</option>';
         }
     };
     html += '</select></div>';
     return html;
 }
 
-var ProxyMinuteHtml = function(ProxyMinute) {
+var ProxySecondHtml = function(ProxySecond) {
     var html = '<div class="form-group">\
                 <label>代理IP更换频率</label>\
-                <select class="form-control" name="ProxyMinute">';
-    for (var i in ProxyMinute.menu) {
+                <select class="form-control" name="ProxySecond">';
+    for (var i in ProxySecond.menu) {
         var isSelect = ""
-        if (ProxyMinute.menu[i] == ProxyMinute.curr[0]) {
+        if (ProxySecond.menu[i] == ProxySecond.curr[0]) {
             isSelect = " selected";
         };
-        if (ProxyMinute.menu[i] == 0) {
-            html += '<option value="' + ProxyMinute.menu[i] + '"' + isSelect + '>' + "不使用代理" + '</option>';
+        if (ProxySecond.menu[i] == 0) {
+            html += '<option value="' + ProxySecond.menu[i] + '"' + isSelect + '>' + "不使用代理" + '</option>';
         } else {
-            html += '<option value="' + ProxyMinute.menu[i] + '"' + isSelect + '>' + ProxyMinute.menu[i] + ' min</option>';
+            html += '<option value="' + ProxySecond.menu[i] + '"' + isSelect + '>' + ProxySecond.menu[i] + ' 秒</option>';
         }
     };
     html += '</select></div>';
