@@ -141,7 +141,7 @@ var FangYuan58 = &Spider{
 
 					query := ctx.GetDom()
                     //判断页面是否存在  
-                    notfoundReg:=regexp.MustCompile("(你要找的页面不在这个星球上)|(地球上没有找到相关信息)|(404 Not Found)")
+                    notfoundReg:=regexp.MustCompile("(你要找的页面不在这个星球上)|(地球上没有找到相关信息)|(404(\\s+)Not(\\s+)Found)")
                     if ok:=ctx.GetResponse().StatusCode==404||notfoundReg.MatchString(query.Text());ok{
                         return
                     }
@@ -173,7 +173,7 @@ var FangYuan58 = &Spider{
                   
                     houseInfoText:=query.Find(".house-type").Text()
                     houseTypeReg:=regexp.MustCompile("([\u4E00-\u9FA5]{0,2}住宅)|公寓|别墅|商住楼|商住两用|其他|(平房/四合院)")
-                    houseSizeReg:=regexp.MustCompile("(\\d+)(\\s+)m²")
+                    houseSizeReg:=regexp.MustCompile("(\\d+)(\\.?)(\\d+)(\\s+)m²")
                     houseHuXinReg:=regexp.MustCompile("(\\d+)室(\\s+)(\\d+)厅(\\s+)(\\d+)卫")
                     houseZhuangXiuReg:=regexp.MustCompile("[\u4E00-\u9FA5]{1,2}装修")
                     houseFloorReg:=regexp.MustCompile("(\\d+)/(\\d+)层")
