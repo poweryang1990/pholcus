@@ -96,6 +96,7 @@ var FangYuan58 = &Spider{
                                 Rule: "获取列表",
                                 ConnTimeout: -1,
                                 Reloadable: true,//列表请求 可重复加载
+                                Temp:map[string]interface{}{"site":fmt.Sprintf("http://%s.58.com",value.CityCode)},
                             })
                             //合租
                              ctx.AddQueue(&request.Request{
@@ -103,6 +104,7 @@ var FangYuan58 = &Spider{
                                 Rule: "获取列表",
                                 ConnTimeout: -1,
                                 Reloadable: true,//列表请求 可重复加载
+                                Temp:map[string]interface{}{"site":fmt.Sprintf("http://%s.58.com",value.CityCode)},
                             })
                         }   
                     }
@@ -117,6 +119,13 @@ var FangYuan58 = &Spider{
 						Find("#infolist > table .img_list a").
 						Each(func(i int, s *goquery.Selection) {
 							url, _ := s.Attr("href")
+                            var site string
+                            ctx.GetTemp("site", &site)
+                            httpUrlReg:=regexp.MustCompile("https?://(.*?)+")
+                            
+                            if !httpUrlReg.MatchString(url) {
+                                url=site+url
+                            }
                             urlReg:=regexp.MustCompile("https?://(.*?).58.com")                       
                             if ok:=urlReg.MatchString(url);ok {
                                 //logs.Log.Informational("请求房源地址：%s",url)

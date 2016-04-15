@@ -24,6 +24,7 @@ import (
 	"fmt"
 	// "math"
 	//"time"
+	"regexp"
 )
 
 func init() {
@@ -95,6 +96,8 @@ var LianJia = &Spider{
                                 Url:fmt.Sprintf("http://%s.lianjia.com/zufang/%s/pg%d/",value.CityCode,area,page),
                                 Rule: "获取列表",
                                 ConnTimeout: -1,
+								Reloadable: true,
+								Temp: map[string]interface{}{"site":fmt.Sprintf("http://%s.lianjia.com",value.CityCode)},
                             })
                             
                         }   
@@ -110,6 +113,13 @@ var LianJia = &Spider{
 						Find("ul.house-lst .pic-panel a").
 						Each(func(i int, s *goquery.Selection) {
 							url, _ := s.Attr("href")
+							var site string
+                            ctx.GetTemp("site", &site)
+                            httpUrlReg:=regexp.MustCompile("https?://(.*?)+")
+                            
+                            if !httpUrlReg.MatchString(url) {
+                                url=site+url
+                            }
                             logs.Log.Informational("请求房源地址：%s",url)
 							ctx.AddQueue(&request.Request{
 								Url:         url,
