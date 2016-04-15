@@ -93,15 +93,15 @@ var GanJi = &Spider{
                                 Url:fmt.Sprintf("http://%s.ganji.com/fang1/%s/m1o%d/",value.CityCode,area,page),
                                 Rule: "获取列表",
                                 ConnTimeout: -1,
-                                Reloadable: true,
+                                //Reloadable: true,
                             })
-                            //  //合租
-                            // ctx.AddQueue(&request.Request{
-                            //     Url:fmt.Sprintf("http://%s.ganji.com/fang3/%s/a3o%d/",value.CityCode,area,page),
-                            //     Rule: "获取列表",
-                            //     ConnTimeout: -1,
-                            //     Reloadable: true,
-                            // })
+                             //合租
+                            ctx.AddQueue(&request.Request{
+                                Url:fmt.Sprintf("http://%s.ganji.com/fang3/%s/a3o%d/",value.CityCode,area,page),
+                                Rule: "获取列表",
+                                ConnTimeout: -1,
+                                //Reloadable: true,
+                            })
                         }   
                     }
 				return nil
@@ -110,28 +110,25 @@ var GanJi = &Spider{
 
 			"获取列表": {
 				ParseFunc: func(ctx *Context) {
-                    ctx.AddQueue(&request.Request{
-								Url:         "   ",
+                      ctx.AddQueue(&request.Request{
+								Url:         "http://cd.ganji.com/fang1/2062280443x.htm",
 								Rule:        "输出结果",
 								ConnTimeout: -1,
-                                Priority: 1,
+                                //Priority: 1,
 							})
-                    //   ctx.AddQueue(&request.Request{
-					// 			Url:         "http://cd.ganji.com/fang1/2062280443x.htm",
-					// 			Rule:        "输出结果",
-					// 			ConnTimeout: -1,
-					// 		})
                             
-                    //         ctx.AddQueue(&request.Request{
-                    //         Url:         "http://cd.ganji.com/fang1/1966321621x.htm",
-                    //         Rule:        "输出结果",
-                    //         ConnTimeout: -1,
-                    //     })
-                    //         ctx.AddQueue(&request.Request{
-                    //         Url:         "http://cd.ganji.com/fang1/1857187644x.htm",
-                    //         Rule:        "输出结果",
-                    //         ConnTimeout: -1,
-                    //     })
+                            ctx.AddQueue(&request.Request{
+                            Url:         "http://cd.ganji.com/fang1/1966321621x.htm",
+                            Rule:        "输出结果",
+                            ConnTimeout: -1,
+                             //Priority: 1,
+                        })
+                            ctx.AddQueue(&request.Request{
+                            Url:         "http://cd.ganji.com/fang1/1857187644x.htm",
+                            Rule:        "输出结果",
+                            ConnTimeout: -1,
+                            //Priority: 1,
+                        })
 					// ctx.GetDom().
 					// 	Find("ul.pageLink.clearfix a").
 					// 	Each(func(i int, s *goquery.Selection) {
