@@ -2,41 +2,71 @@ package collector
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/henrylee2cn/pholcus/common/mysql"
 	"github.com/henrylee2cn/pholcus/common/util"
+	"github.com/henrylee2cn/pholcus/logs"
 )
 
 /************************ Mysql 输出 ***************************/
 
 func init() {
+	var (
+		mysqlTable     = map[string]*mysql.MyTable{}
+		mysqlTableLock sync.RWMutex
+	)
+
+	var getMysqlTable = func(name string) (*mysql.MyTable, bool) {
+		mysqlTableLock.RLock()
+		tab, ok := mysqlTable[name]
+		mysqlTableLock.RUnlock()
+		return tab, ok
+	}
+
+	var setMysqlTable = func(name string, tab *mysql.MyTable) {
+		mysqlTableLock.Lock()
+		mysqlTable[name] = tab
+		mysqlTableLock.Unlock()
+	}
+
 	Output["mysql"] = func(self *Collector, dataIndex int) error {
-		db, err := mysql.DB()
+		_, err := mysql.DB()
 		if err != nil {
 			return fmt.Errorf("Mysql数据库链接失败: %v", err)
 		}
-
 		var (
 			mysqls    = make(map[string]*mysql.MyTable)
 			namespace = util.FileNameReplace(self.namespace())
 		)
-
 		for _, datacell := range self.DockerQueue.Dockers[dataIndex] {
-			subNamespace := util.FileNameReplace(self.subNamespace(datacell))
 			var tName = namespace
+			subNamespace := util.FileNameReplace(self.subNamespace(datacell))
 			if subNamespace != "" {
 				tName += "_" + subNamespace
 			}
-			if _, ok := mysqls[tName]; !ok {
-				mysqls[tName] = mysql.New(db)
-				mysqls[tName].SetTableName(tName)
-				for _, title := range self.MustGetRule(datacell["RuleName"].(string)).ItemFields {
-					mysqls[tName].AddColumn(title + ` MEDIUMTEXT`)
+			table, ok := mysqls[tName]
+			if !ok {
+				table, ok = getMysqlTable(tName)
+				if ok {
+					mysqls[tName] = table
+				} else {
+					table = mysql.New()
+					table.SetTableName(tName)
+					for _, title := range self.MustGetRule(datacell["RuleName"].(string)).ItemFields {
+						table.AddColumn(title + ` MEDIUMTEXT`)
+					}
+					if self.Spider.OutDefaultField() {
+						table.AddColumn(`Url VARCHAR(255)`, `ParentUrl VARCHAR(255)`, `DownloadTime VARCHAR(50)`)
+					}
+					if err := table.Create(); err != nil {
+						logs.Log.Error("%v", err)
+						continue
+					} else {
+						setMysqlTable(tName, table)
+						mysqls[tName] = table
+					}
 				}
-
-				mysqls[tName].
-					AddColumn(`Url VARCHAR(255)`, `ParentUrl VARCHAR(255)`, `DownloadTime VARCHAR(50)`).
-					Create()
 			}
 			data := []string{}
 			for _, title := range self.MustGetRule(datacell["RuleName"].(string)).ItemFields {
@@ -47,8 +77,10 @@ func init() {
 					data = append(data, util.JsonString(vd[title]))
 				}
 			}
-			data = append(data, datacell["Url"].(string), datacell["ParentUrl"].(string), datacell["DownloadTime"].(string))
-			mysqls[tName].AutoInsert(data)
+			if self.Spider.OutDefaultField() {
+				data = append(data, datacell["Url"].(string), datacell["ParentUrl"].(string), datacell["DownloadTime"].(string))
+			}
+			table.AutoInsert(data)
 		}
 		for _, tab := range mysqls {
 			util.CheckErr(tab.FlushInsert())

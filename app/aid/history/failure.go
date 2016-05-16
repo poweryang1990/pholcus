@@ -81,7 +81,6 @@ func (self *Failure) flush(provider string) (fLen int, err error) {
 		if err != nil {
 			return fLen, fmt.Errorf(" *     Fail  [添加失败记录][mysql]: %v 条 [ERROR]  %v\n", fLen, err)
 		}
-
 		// 删除失败记录文件
 		stmt, err := db.Prepare(`DROP TABLE ` + self.tabName)
 		if err != nil {
@@ -91,16 +90,24 @@ func (self *Failure) flush(provider string) (fLen int, err error) {
 		if fLen == 0 {
 			return fLen, nil
 		}
-
+		table, ok := getWriteMysqlTable(self.tabName)
+		if !ok {
+			table = mysql.New()
+			table.SetTableName(self.tabName).AddColumn(`failure MEDIUMTEXT`)
+			setWriteMysqlTable(self.tabName, table)
+		}
 		// 添加失败请求
-		table := mysql.New(db).
-			SetTableName("`" + self.tabName + "`").
-			AddColumn(`failure MEDIUMTEXT`).
-			Create()
+		err = table.Create()
+		if err != nil {
+			return fLen, fmt.Errorf(" *     Fail  [添加失败记录][mysql]: %v 条 [ERROR]  %v\n", fLen, err)
+		}
 		for req := range self.list {
 			table.AutoInsert([]string{req.Serialize()})
 		}
-		table.FlushInsert()
+		err = table.FlushInsert()
+		if err != nil {
+			return fLen, fmt.Errorf(" *     Fail  [添加失败记录][mysql]: %v 条 [ERROR]  %v\n", fLen, err)
+		}
 
 	default:
 		// 删除失败记录文件
@@ -109,7 +116,7 @@ func (self *Failure) flush(provider string) (fLen int, err error) {
 			return
 		}
 
-		f, _ := os.OpenFile(self.fileName, os.O_CREATE|os.O_WRONLY, 0660)
+		f, _ := os.OpenFile(self.fileName, os.O_CREATE|os.O_WRONLY, 0777)
 
 		docs := make([]string, len(self.list))
 		i := 0
