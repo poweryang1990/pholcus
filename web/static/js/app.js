@@ -260,6 +260,11 @@ wslog.onmessage = function(m) {
     var div = document.createElement("div");
     div.className = "item";
     div.innerHTML = '<p class="message">' + m.data.replace(/\s/g, '&nbsp;') + '</p>';
-    document.getElementById('log-box').appendChild(div);
-    document.getElementById('log-box').scrollTop = document.getElementById('log-box').scrollHeight;
+    var log_box= document.getElementById('log-box');
+    log_box.appendChild(div);
+    if(log_box.children.length>2000){
+       log_box.removeChild(log_box.childNodes[0]);
+    }
+    
+    log_box.scrollTop = log_box.scrollHeight;
 };
