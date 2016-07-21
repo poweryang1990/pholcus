@@ -26,10 +26,14 @@ func init() {
 		for _, datacell := range self.DockerQueue.Dockers[dataIndex] {
 			var subNamespace = util.FileNameReplace(self.subNamespace(datacell))
 			if _, ok := sheets[subNamespace]; !ok {
+<<<<<<< HEAD
 				folder := config.TEXT_DIR + "/" + cache.StartTime.Format("2006年01月02日 15时04分05秒") + "/" + namespace 
                 if subNamespace!="" {
                     folder=folder+"_" + subNamespace
                 }
+=======
+				folder := config.TEXT_DIR + "/" + cache.StartTime.Format("2006年01月02日 15时04分05秒") + "/" + joinNamespaces(namespace, subNamespace)
+>>>>>>> henrylee/master
 				filename := fmt.Sprintf("%v/%v-%v.csv", folder, self.sum[0], self.sum[1])
 
 				// 创建/打开目录

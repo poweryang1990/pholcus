@@ -1,19 +1,22 @@
 package spider
 
 import (
-	"io"
+	"bytes"
 	"io/ioutil"
+	"mime"
 	"net/http"
 	"path"
 	"strings"
 	"sync"
 	"time"
+	"unsafe"
 
 	"github.com/PuerkitoBio/goquery"
 	"golang.org/x/net/html/charset"
 
 	"github.com/henrylee2cn/pholcus/app/downloader/request"
 	"github.com/henrylee2cn/pholcus/app/pipeline/collector/data"
+	"github.com/henrylee2cn/pholcus/common/util"
 	"github.com/henrylee2cn/pholcus/logs"
 )
 
@@ -21,7 +24,7 @@ type Context struct {
 	spider   *Spider           // 规则
 	Request  *request.Request  // 原始请求
 	Response *http.Response    // 响应流，其中URL拷贝自*request.Request
-	text     string            // 下载内容Body的字符串格式
+	text     []byte            // 下载内容Body的字节流格式
 	dom      *goquery.Document // 下载内容Body为html时，可转换为Dom的对象
 	items    []data.DataCell   // 存放以文本形式输出的结果数据
 	files    []data.FileCell   // 存放欲直接输出的文件("Name": string; "Body": io.ReadCloser)
@@ -29,16 +32,36 @@ type Context struct {
 	sync.Mutex
 }
 
+var (
+	contextPool = &sync.Pool{
+		New: func() interface{} {
+			return &Context{
+				items: []data.DataCell{},
+				files: []data.FileCell{},
+			}
+		},
+	}
+)
+
 //**************************************** 初始化 *******************************************\\
 
-func NewContext(sp *Spider, req *request.Request) *Context {
-	ctx := &Context{
-		spider:  sp,
-		Request: req,
-		items:   []data.DataCell{},
-		files:   []data.FileCell{},
-	}
+func GetContext(sp *Spider, req *request.Request) *Context {
+	ctx := contextPool.Get().(*Context)
+	ctx.spider = sp
+	ctx.Request = req
 	return ctx
+}
+
+func PutContext(ctx *Context) {
+	ctx.items = ctx.items[:0]
+	ctx.files = ctx.files[:0]
+	ctx.spider = nil
+	ctx.Request = nil
+	ctx.Response = nil
+	ctx.text = nil
+	ctx.dom = nil
+	ctx.err = nil
+	contextPool.Put(ctx)
 }
 
 func (self *Context) SetResponse(resp *http.Response) *Context {
@@ -76,7 +99,7 @@ func (self *Context) AddQueue(req *request.Request) *Context {
 		Prepare()
 
 	if err != nil {
-		logs.Log.Error("%v", err)
+		logs.Log.Error(err.Error())
 		return self
 	}
 
@@ -102,7 +125,16 @@ func (self *Context) JsAddQueue(jreq map[string]interface{}) *Context {
 	req.Url = u
 	req.Rule, _ = jreq["Rule"].(string)
 	req.Method, _ = jreq["Method"].(string)
-	req.Header, _ = jreq["Header"].(map[string][]string)
+	req.Header = http.Header{}
+	if header, ok := jreq["Header"].(map[string]interface{}); ok {
+		for k, values := range header {
+			if vals, ok := values.([]string); ok {
+				for _, v := range vals {
+					req.Header.Add(k, v)
+				}
+			}
+		}
+	}
 	req.PostData, _ = jreq["PostData"].(string)
 	req.Reloadable, _ = jreq["Reloadable"].(bool)
 	if t, ok := jreq["DialTimeout"].(int64); ok {
@@ -136,7 +168,7 @@ func (self *Context) JsAddQueue(jreq map[string]interface{}) *Context {
 		Prepare()
 
 	if err != nil {
-		logs.Log.Error("%v", err)
+		logs.Log.Error(err.Error())
 		return self
 	}
 
@@ -175,9 +207,9 @@ func (self *Context) Output(item interface{}, ruleName ...string) {
 	}
 	self.Lock()
 	if self.spider.NotDefaultField {
-		self.items = append(self.items, data.NewDataCell(_ruleName, _item, "", "", ""))
+		self.items = append(self.items, data.GetDataCell(_ruleName, _item, "", "", ""))
 	} else {
-		self.items = append(self.items, data.NewDataCell(_ruleName, _item, self.GetUrl(), self.GetReferer(), time.Now().Format("2006-01-02 15:04:05")))
+		self.items = append(self.items, data.GetDataCell(_ruleName, _item, self.GetUrl(), self.GetReferer(), time.Now().Format("2006-01-02 15:04:05")))
 	}
 	self.Unlock()
 }
@@ -185,10 +217,18 @@ func (self *Context) Output(item interface{}, ruleName ...string) {
 // 输出文件。
 // name指定文件名，为空时默认保持原文件名不变。
 func (self *Context) FileOutput(name ...string) {
+	// 读取完整文件流
+	bytes, err := ioutil.ReadAll(self.Response.Body)
+	self.Response.Body.Close()
+	if err != nil {
+		panic(err.Error())
+		return
+	}
+
+	// 智能设置完整文件名
 	_, s := path.Split(self.GetUrl())
 	n := strings.Split(s, "?")[0]
 
-	// 初始化
 	baseName := strings.Split(n, ".")[0]
 	ext := path.Ext(n)
 
@@ -205,8 +245,10 @@ func (self *Context) FileOutput(name ...string) {
 	if ext == "" {
 		ext = ".html"
 	}
+
+	// 保存到文件临时队列
 	self.Lock()
-	self.files = append(self.files, data.NewFileCell(self.GetRuleName(), baseName+ext, self.Response.Body))
+	self.files = append(self.files, data.GetFileCell(self.GetRuleName(), baseName+ext, bytes))
 	self.Unlock()
 }
 
@@ -336,7 +378,9 @@ func (self *Context) RunTimer(id string) bool {
 
 // 重置下载的文本内容，
 func (self *Context) ResetText(body string) *Context {
-	self.text = body
+	x := (*[2]uintptr)(unsafe.Pointer(&body))
+	h := [3]uintptr{x[0], x[1], x[1]}
+	self.text = *(*[]byte)(unsafe.Pointer(&h))
 	self.dom = nil
 	return self
 }
@@ -356,6 +400,11 @@ func (self *Context) GetSpider() *Spider {
 // 获取响应流。
 func (self *Context) GetResponse() *http.Response {
 	return self.Response
+}
+
+// 获取响应状态码。
+func (self *Context) GetStatusCode() int {
+	return self.Response.StatusCode
 }
 
 // 获取原始请求。
@@ -490,10 +539,10 @@ func (self *Context) GetDom() *goquery.Document {
 
 // GetBodyStr returns plain string crawled.
 func (self *Context) GetText() string {
-	if self.text == "" {
+	if self.text == nil {
 		self.initText()
 	}
-	return self.text
+	return util.Bytes2String(self.text)
 }
 
 //**************************************** 私有方法 *******************************************\\
@@ -514,11 +563,12 @@ func (self *Context) getRule(ruleName ...string) (name string, rule *Rule, found
 
 // GetHtmlParser returns goquery object binded to target crawl result.
 func (self *Context) initDom() *goquery.Document {
-	r := strings.NewReader(self.GetText())
+	if self.text == nil {
+		self.initText()
+	}
 	var err error
-	self.dom, err = goquery.NewDocumentFromReader(r)
+	self.dom, err = goquery.NewDocumentFromReader(bytes.NewReader(self.text))
 	if err != nil {
-		logs.Log.Error("%v", err)
 		panic(err.Error())
 	}
 	return self.dom
@@ -526,31 +576,54 @@ func (self *Context) initDom() *goquery.Document {
 
 // GetBodyStr returns plain string crawled.
 func (self *Context) initText() {
-	defer self.Response.Body.Close()
-	// get converter to utf-8
-	self.text = changeCharsetEncodingAuto(self.Response.Body, self.Response.Header.Get("Content-Type"))
-	//fmt.Printf("utf-8 body %v \r\n", bodyStr)
-}
+	// 采用surf内核下载时，尝试自动转码
+	if self.Request.DownloaderID == request.SURF_ID {
+		var contentType, pageEncode string
+		// 优先从响应头读取编码类型
+		contentType = self.Response.Header.Get("Content-Type")
+		if _, params, err := mime.ParseMediaType(contentType); err == nil {
+			if cs, ok := params["charset"]; ok {
+				pageEncode = strings.ToLower(strings.TrimSpace(cs))
+			}
+		}
+		// 响应头未指定编码类型时，从请求头读取
+		if len(pageEncode) == 0 {
+			contentType = self.Request.Header.Get("Content-Type")
+			if _, params, err := mime.ParseMediaType(contentType); err == nil {
+				if cs, ok := params["charset"]; ok {
+					pageEncode = strings.ToLower(strings.TrimSpace(cs))
+				}
+			}
+		}
 
-// Charset auto determine. Use golang.org/x/net/html/charset. Get response body and change it to utf-8
-func changeCharsetEncodingAuto(sor io.ReadCloser, contentTypeStr string) string {
+		switch pageEncode {
+		// 不做转码处理
+		case "", "utf8", "utf-8", "unicode-1-1-utf-8":
+		default:
+			// 指定了编码类型，但不是utf8时，自动转码为utf8
+			// get converter to utf-8
+			// Charset auto determine. Use golang.org/x/net/html/charset. Get response body and change it to utf-8
+			destReader, err := charset.NewReaderLabel(pageEncode, self.Response.Body)
+			if err == nil {
+				self.text, err = ioutil.ReadAll(destReader)
+				if err == nil {
+					self.Response.Body.Close()
+					return
+				} else {
+					logs.Log.Warning(" *     [convert][%v]: %v (ignore transcoding)\n", self.GetUrl(), err)
+				}
+			} else {
+				logs.Log.Warning(" *     [convert][%v]: %v (ignore transcoding)\n", self.GetUrl(), err)
+			}
+		}
+	}
+
+	// 不做转码处理
 	var err error
-	destReader, err := charset.NewReader(sor, contentTypeStr)
-
+	self.text, err = ioutil.ReadAll(self.Response.Body)
+	self.Response.Body.Close()
 	if err != nil {
-		logs.Log.Error("%v", err)
-		destReader = sor
+		panic(err.Error())
+		return
 	}
-
-	var sorbody []byte
-	if sorbody, err = ioutil.ReadAll(destReader); err != nil {
-		logs.Log.Error("%v", err)
-		// For gb2312, an error will be returned.
-		// Error like: simplifiedchinese: invalid GBK encoding
-		// return ""
-	}
-	//e,name,certain := charset.DetermineEncoding(sorbody,contentTypeStr)
-	bodystr := string(sorbody)
-
-	return bodystr
 }

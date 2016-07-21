@@ -4,7 +4,7 @@
 
 // taken from http://golang.org/src/pkg/net/ipraw_test.go
 
-package proxy
+package ping
 
 import (
 	"bytes"
@@ -120,18 +120,18 @@ func parseICMPEcho(b []byte) (*icmpEcho, error) {
 	return p, nil
 }
 
-func Ping(address string, timeout int) (alive bool, err error, timedelay time.Duration) {
+func Ping(address string, timeoutSecond int) (alive bool, err error, timedelay time.Duration) {
 	t := time.Now()
-	err = Pinger(address, timeout)
+	err = Pinger(address, timeoutSecond)
 	return err == nil, err, time.Now().Sub(t)
 }
 
-func Pinger(address string, timeout int) error {
+func Pinger(address string, timeoutSecond int) error {
 	c, err := net.Dial("ip4:icmp", address)
 	if err != nil {
 		return err
 	}
-	c.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Second))
+	c.SetDeadline(time.Now().Add(time.Duration(timeoutSecond) * time.Second))
 	defer c.Close()
 
 	typ := icmpv4EchoRequest

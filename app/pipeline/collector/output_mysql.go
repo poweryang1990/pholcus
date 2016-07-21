@@ -40,11 +40,14 @@ func init() {
 			namespace = util.FileNameReplace(self.namespace())
 		)
 		for _, datacell := range self.DockerQueue.Dockers[dataIndex] {
-			var tName = namespace
 			subNamespace := util.FileNameReplace(self.subNamespace(datacell))
+<<<<<<< HEAD
 			if subNamespace != "" {
 				tName += "_" + subNamespace
 			}
+=======
+			tName := joinNamespaces(namespace, subNamespace)
+>>>>>>> henrylee/master
 			table, ok := mysqls[tName]
 			if !ok {
 				table, ok = getMysqlTable(tName)
@@ -85,6 +88,7 @@ func init() {
 		for _, tab := range mysqls {
 			util.CheckErr(tab.FlushInsert())
 		}
+		mysqls = nil
 		return nil
 	}
 }

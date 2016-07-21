@@ -2,7 +2,6 @@ package spider
 
 import (
 	"math"
-	"runtime"
 	"sync"
 	"time"
 
@@ -59,9 +58,9 @@ type (
 )
 
 // 添加自身到蜘蛛菜单
-func (self *Spider) Register() *Spider {
-	Menu.Add(self)
-	return self
+func (self Spider) Register() *Spider {
+	self.status = status.STOPPED
+	return Menu.Add(&self)
 }
 
 // 指定规则的获取结果的字段名列表
@@ -267,10 +266,6 @@ func (self *Spider) RequestFree() {
 	self.ReqMatrix.Free()
 }
 
-func (self *Spider) CanStop() bool {
-	return self.ReqMatrix.CanStop()
-}
-
 func (self *Spider) RequestLen() int {
 	return self.ReqMatrix.Len()
 }
@@ -285,24 +280,15 @@ func (self *Spider) TryFlushFailure() {
 
 // 开始执行蜘蛛
 func (self *Spider) Start() {
-	self.rwMutex.Lock()
-	self.status = status.RUN
-	self.rwMutex.Unlock()
 	defer func() {
 		if p := recover(); p != nil {
 			logs.Log.Error(" *     Panic  [root]: %v\n", p)
 		}
+		self.rwMutex.Lock()
+		self.status = status.RUN
+		self.rwMutex.Unlock()
 	}()
-	go self.RuleTree.Root(NewContext(self, nil))
-	cancel := time.After(1e9)
-	for self.RequestLen() == 0 {
-		select {
-		case <-cancel:
-			return
-		default:
-			runtime.Gosched()
-		}
-	}
+	self.RuleTree.Root(GetContext(self, nil))
 }
 
 // 主动崩溃爬虫运行协程
@@ -315,6 +301,10 @@ func (self *Spider) Stop() {
 		self.timer = nil
 	}
 	self.rwMutex.Unlock()
+}
+
+func (self *Spider) CanStop() bool {
+	return self.status != status.STOPPED && self.ReqMatrix.CanStop()
 }
 
 // 若已主动终止任务，则崩溃爬虫协程

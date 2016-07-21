@@ -6,7 +6,10 @@ import (
 	"net/url"
 	"reflect"
 	"strings"
+	"sync"
 	"time"
+
+	"github.com/henrylee2cn/pholcus/common/util"
 )
 
 // Request represents object waiting for being crawled.
@@ -56,6 +59,9 @@ type Request struct {
 	// 0为Surf高并发下载器，各种控制功能齐全
 	// 1为PhantomJS下载器，特点破防力强，速度慢，低并发
 	DownloaderID int
+
+	unique string
+	lock   sync.RWMutex
 }
 
 const (
@@ -63,6 +69,11 @@ const (
 	DefaultConnTimeout = 2 * time.Minute // 默认下载超时
 	DefaultTryTimes    = 3               // 默认最大下载次数
 	DefaultRetryPause  = 2 * time.Second // 默认重新下载前停顿时长
+)
+
+const (
+	SURF_ID    = 0 // 默认的surf下载内核（Go原生），此值不可改动
+	PHANTOM_ID = 1 // 备用的phantomjs下载内核，一般不使用（效率差，头信息支持不完善）
 )
 
 // 发送请求前的准备工作，设置一系列默认值
@@ -120,8 +131,8 @@ func (self *Request) Prepare() error {
 		self.Priority = 0
 	}
 
-	if self.DownloaderID < 0 || self.DownloaderID > 1 {
-		self.DownloaderID = 0
+	if self.DownloaderID < SURF_ID || self.DownloaderID > PHANTOM_ID {
+		self.DownloaderID = SURF_ID
 	}
 
 	if self.TempIsJson == nil {
@@ -143,11 +154,19 @@ func UnSerialize(s string) (*Request, error) {
 // 序列化
 func (self *Request) Serialize() string {
 	for k, v := range self.Temp {
-		self.Temp.Set(k, v)
+		self.Temp.set(k, v)
 		self.TempIsJson[k] = true
 	}
 	b, _ := json.Marshal(self)
-	return strings.Replace(string(b), `\u0026`, `&`, -1)
+	return strings.Replace(util.Bytes2String(b), `\u0026`, `&`, -1)
+}
+
+// 请求的唯一识别码
+func (self *Request) Unique() string {
+	if self.unique == "" {
+		self.unique = util.MakeHash(self.Spider + self.Rule + self.Url + self.Method)
+	}
+	return self.unique
 }
 
 // 获取副本
@@ -278,24 +297,30 @@ func (self *Request) SetReloadable(can bool) *Request {
 	return self
 }
 
-// 返回临时缓存数据
-// 当数据接收者receive为指针类型或引用类型时，亦可直接得到缓存数据
+// 获取临时缓存数据
+// receive参数为指针类型时，返回值同时被写入receive
+// receive不能为nil
 func (self *Request) GetTemp(key string, receive interface{}) interface{} {
+	if receive == nil {
+		panic("*Request.GetTemp()的receive不能为nil，错误位置：key=" + key)
+	}
+	self.lock.RLock()
+	defer self.lock.RUnlock()
+
 	if self.TempIsJson[key] {
 		if _, ok := self.Temp[key]; !ok {
 			return nil
 		}
-		return self.Temp.Get(key, receive)
+		self.Temp.get(key, receive)
+		return receive
 	}
 
 	r := reflect.ValueOf(receive)
-	t := reflect.ValueOf(self.Temp[key])
-	if r.Kind() == t.Kind() {
-		receive = self.Temp[key]
-	} else if r.Kind() == reflect.Ptr {
+	if r.Kind() == reflect.Ptr {
 		e := r.Elem()
 		if e.CanSet() {
-			e.Set(t)
+			e.Set(reflect.ValueOf(self.Temp[key]))
+			return receive
 		}
 	}
 
@@ -307,14 +332,18 @@ func (self *Request) GetTemps() Temp {
 }
 
 func (self *Request) SetTemp(key string, value interface{}) *Request {
+	self.lock.Lock()
 	self.Temp[key] = value
 	delete(self.TempIsJson, key)
+	self.lock.Unlock()
 	return self
 }
 
 func (self *Request) SetTemps(temp map[string]interface{}) *Request {
+	self.lock.Lock()
 	self.Temp = temp
 	self.TempIsJson = make(map[string]bool)
+	self.lock.Unlock()
 	return self
 }
 
@@ -341,7 +370,7 @@ func (self *Request) MarshalJSON() ([]byte, error) {
 		if self.TempIsJson[k] {
 			continue
 		}
-		self.Temp.Set(k, v)
+		self.Temp.set(k, v)
 		self.TempIsJson[k] = true
 	}
 	b, err := json.Marshal(*self)

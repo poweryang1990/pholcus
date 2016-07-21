@@ -1,7 +1,25 @@
+// Copyright 2015 henrylee2cn Author. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package surfer
 
 import (
+	"compress/flate"
+	"compress/gzip"
+	"compress/zlib"
 	"crypto/tls"
+	"io"
 	"math/rand"
 	"net"
 	"net/http"
@@ -30,11 +48,30 @@ func (self *Surf) Download(req Request) (resp *http.Response, err error) {
 	}
 	param.client = self.buildClient(param)
 	resp, err = self.httpRequest(param)
+
+	if err == nil {
+		switch resp.Header.Get("Content-Encoding") {
+		case "gzip":
+			var gzipReader *gzip.Reader
+			gzipReader, err = gzip.NewReader(resp.Body)
+			if err == nil {
+				resp.Body = gzipReader
+			}
+
+		case "deflate":
+			resp.Body = flate.NewReader(resp.Body)
+
+		case "zlib":
+			var readCloser io.ReadCloser
+			readCloser, err = zlib.NewReader(resp.Body)
+			if err == nil {
+				resp.Body = readCloser
+			}
+		}
+	}
+
 	resp = param.writeback(resp)
-	// if err != nil {
-	// 	resp.Status = "200 OK"
-	// 	resp.StatusCode = 200
-	// }
+
 	return
 }
 
