@@ -82,29 +82,29 @@ ws.onmessage = function(m) {
 
             // 任务开始通知
         case "run":
-            $("#btn-run").text("停止").attr("data-type", "stop");
+            $("#btn-run").text("Stop").attr("data-type", "stop");
 
             if (data.mode == offline) {
-                $("#btn-run").text("停止").attr("data-type", "stop").addClass("btn-danger").removeClass("btn-primary");
-                $("#btn-pause").text("暂停").removeAttr("disabled").show();
+                $("#btn-run").text("Stop").attr("data-type", "stop").addClass("btn-danger").removeClass("btn-primary");
+                $("#btn-pause").text("Pause").removeAttr("disabled").show();
             };
             break;
 
             // 任务结束通知
         case "stop":
             $("#btn-pause").hide();
-            $("#btn-run").text("启动").attr("data-type", "run").removeAttr("disabled");
+            $("#btn-run").text("Run").attr("data-type", "run").removeAttr("disabled");
             if (data.mode == offline) {
-                $("#btn-run").text("启动").attr("data-type", "run").addClass("btn-primary").removeClass("btn-danger");
+                $("#btn-run").text("Run").attr("data-type", "run").addClass("btn-primary").removeClass("btn-danger");
             };
             break;
 
             // 暂停与恢复
         case "pauseRecover":
-            if ($("#btn-pause").text() == "暂停") {
-                $("#btn-pause").text("继续...").addClass("btn-info").removeClass("btn-warning");
+            if ($("#btn-pause").text() == "Pause") {
+                $("#btn-pause").text("Go on...").addClass("btn-info").removeClass("btn-warning");
             } else {
-                $("#btn-pause").text("暂停").addClass("btn-warning").removeClass("btn-info");
+                $("#btn-pause").text("Pause").addClass("btn-warning").removeClass("btn-info");
             };
             break;
 
@@ -199,7 +199,7 @@ function runStop() {
         ws.onsend(getForm());
     } else if (mode == offline) {
         $("#btn-pause").hide();
-        $("#btn-run").text("停止中...").attr("disabled", "disabled");
+        $("#btn-run").text("Stopping...").attr("disabled", "disabled");
         ws.onsend({
             'operate': 'stop'
         });
@@ -217,7 +217,7 @@ function getForm() {
         'Limit': document.pholcus.elements['Limit'].value,
         'DockerCap': document.pholcus.elements['DockerCap'].value,
         'Pausetime': document.pholcus.elements['Pausetime'].value,
-        'ProxySecond': document.pholcus.elements['ProxySecond'].value,
+        'ProxyMinute': document.pholcus.elements['ProxyMinute'].value,
         'OutType': document.pholcus.elements['OutType'].value,
         'SuccessInherit': document.pholcus.elements['SuccessInherit'].value,
         'FailureInherit': document.pholcus.elements['FailureInherit'].value,
@@ -260,11 +260,6 @@ wslog.onmessage = function(m) {
     var div = document.createElement("div");
     div.className = "item";
     div.innerHTML = '<p class="message">' + m.data.replace(/\s/g, '&nbsp;') + '</p>';
-    var log_box= document.getElementById('log-box');
-    log_box.appendChild(div);
-    if(log_box.children.length>2000){
-       log_box.removeChild(log_box.childNodes[0]);
-    }
-    
-    log_box.scrollTop = log_box.scrollHeight;
+    document.getElementById('log-box').appendChild(div);
+    document.getElementById('log-box').scrollTop = document.getElementById('log-box').scrollHeight;
 };

@@ -33,7 +33,7 @@ func joinNamespaces(namespace, subNamespace string) string {
 	if namespace == "" {
 		return subNamespace
 	} else if subNamespace != "" {
-		return namespace + "__" + subNamespace
+		return namespace + "_" + subNamespace
 	}
 	return namespace
 }
