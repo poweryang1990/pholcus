@@ -1,39 +1,40 @@
 package spider
 
 import (
+	"fmt"
+
 	"github.com/henrylee2cn/pholcus/common/pinyin"
 )
 
 // 蜘蛛种类列表
-type (
-	Traversal interface {
-		Add(*Spider) *Spider
-		Get() []*Spider
-		GetByName(string) *Spider
-	}
+type SpiderSpecies struct {
+	list   []*Spider
+	hash   map[string]*Spider
+	sorted bool
+}
 
-	menu struct {
-		list   []*Spider
-		sorted bool
-	}
-)
-
-var Menu = newTraversal()
-
-func newTraversal() Traversal {
-	return &menu{
-		list: []*Spider{},
-	}
+// 全局蜘蛛种类实例
+var Species = &SpiderSpecies{
+	list: []*Spider{},
+	hash: map[string]*Spider{},
 }
 
 // 向蜘蛛种类清单添加新种类
-func (self *menu) Add(sp *Spider) *Spider {
+func (self *SpiderSpecies) Add(sp *Spider) *Spider {
+	for i, name := 2, sp.Name; true; i++ {
+		if _, ok := self.hash[name]; !ok {
+			sp.Name = name
+			self.hash[sp.Name] = sp
+			break
+		}
+		name = fmt.Sprintf("%s(%d)", sp.Name, i)
+	}
 	self.list = append(self.list, sp)
 	return sp
 }
 
 // 获取全部蜘蛛种类
-func (self *menu) Get() []*Spider {
+func (self *SpiderSpecies) Get() []*Spider {
 	if !self.sorted {
 		l := len(self.list)
 		initials := make([]string, l)
@@ -51,11 +52,6 @@ func (self *menu) Get() []*Spider {
 	return self.list
 }
 
-func (self *menu) GetByName(n string) *Spider {
-	for _, sp := range self.list {
-		if sp.GetName() == n {
-			return sp
-		}
-	}
-	return nil
+func (self *SpiderSpecies) GetByName(name string) *Spider {
+	return self.hash[name]
 }
